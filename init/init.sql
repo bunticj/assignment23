@@ -28,5 +28,5 @@ CREATE TABLE IF NOT EXISTS `game` (
     PRIMARY KEY (game_id),
     FOREIGN KEY (player1) REFERENCES `user` (user_id),
     FOREIGN KEY (player2) REFERENCES `user` (user_id),
-    FOREIGN KEY (winner) REFERENCES `user` (user_id),
+    FOREIGN KEY (winner) REFERENCES `user` (user_id)
 ) ENGINE = InnoDB;
