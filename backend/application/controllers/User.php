@@ -1,75 +1,114 @@
-
 <?php
+defined('BASEPATH') or exit('No direct script access allowed');
 
-require APPPATH . 'libraries/REST_Controller.php';
-
-class User extends REST_Controller
+class User extends CI_Controller
 {
 
-    /**
-     * Get All Data from this method.
-     *
-     * @return Response
-     */
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('user_model');
-
+        $this->load->model('User_model');
     }
 
-    /**
-     * Get All Data from this method.
-     *
-     * @return Response
-     */
-    public function index_get($id = 0)
+    private function validateUserBody($json_data, $isLogin)
     {
-        if (!empty($id)) {
-            $data = $this->db->get_where("user", ['id' => $id])->row_array();
-        } else {
-            $data = $this->db->get("items")->result();
+        if (!isset($json_data['password']) || empty($json_data['password'])) {
+            return 'Invalid password';
         }
-
-        $this->response($data, REST_Controller::HTTP_OK);
+        if (!isset($json_data['email']) || empty($json_data['email'])) {
+            return 'Invalid email';
+        }
+        if (!$isLogin) {
+            if (!isset($json_data['full_name']) || empty($json_data['full_name'])) {
+                return 'Invalid full name';
+            }
+        }
+        return 'Success';
     }
 
-    /**
-     * Get All Data from this method.
-     *
-     * @return Response
-     */
-    public function index_post()
+    public function login()
     {
-        $input = $this->input->post();
-        printf($input);
-        $this->user_model->insert_user($input); 
-
-        $this->response(['User created successfully.'], REST_Controller::HTTP_OK);
+        $raw_input = file_get_contents('php://input');
+        $json_data = json_decode($raw_input, true);
+        $message = $this->validateUserBody($json_data, true);
+        if ($message === 'Success') {
+            $user = $this->User_model->get_user_by_email($json_data['email']);
+            if ($user && password_verify($json_data['password'], $user->password)) {
+                $response = array('message' => $message, 'token' => 'Some generated token which will be able to identify us');
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header(200, 'OK')
+                    ->set_output(json_encode($response));
+                return;
+            }
+        }
+        $response = array('error' => $message);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(401, "Unauthorized")
+            ->set_output(json_encode($response));
     }
 
-    /**
-     * Get All Data from this method.
-     *
-     * @return Response
-     */
-    public function index_put($id)
+    public function register()
     {
-        $input = $this->put();
-        $this->db->update('items', $input, array('id' => $id));
+        $raw_input = file_get_contents('php://input');
+        $json_data = json_decode($raw_input, true);
+        //should extract playerid from header
+        //$input_header = $this->input->request_headers();
+        //$stringified = json_encode($input_header);
+        //printf($stringified);
+        $message = $this->validateUserBody($json_data, false);
+        if ($message === 'Success') {
+            $exist = $this->User_model->get_user_by_email($json_data['email']);
+            if (!$exist) {
+                $hashed_pass =  password_hash($json_data['password'], PASSWORD_BCRYPT);
+                $data = $this->User_model->insert_user($json_data, $hashed_pass);
+                // todo generate token
+                $response = array('message' => $message, 'token' => 'Some generated token which will be able to identify us');
+                $status_code = 200;
+                $status_message = 'OK';
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_status_header($status_code, $status_message)
+                    ->set_output(json_encode($response));
+                return;
+            } else $message = 'User exists';
+        }
+        $response = array('error' => $message);
 
-        $this->response(['Item updated successfully.'], REST_Controller::HTTP_OK);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(401, 'Unauthorized')
+            ->set_output(json_encode($response));
     }
 
-    /**
-     * Get All Data from this method.
-     *
-     * @return Response
-     */
-    public function index_delete($id)
+    public function me()
     {
-        $this->db->delete('items', array('id' => $id));
+        $raw_input = file_get_contents('php://input');
+        $json_data = json_decode($raw_input, true);
+        //$input_header = $this->input->request_headers();
+        //$stringified = json_encode($input_header);
+        //printf($stringified);
 
-        $this->response(['Item deleted successfully.'], REST_Controller::HTTP_OK);
+        //input_header and get id from auth token payload
+        $user_id = 1;
+        $user = $this->User_model->get_user_by_id($user_id);
+        if ($user) {
+            $response = array('user_id' => $user_id, 'email' => $user['email']);
+            $status_code = 200;
+            $status_message = 'OK';
+            $this->output
+                ->set_content_type('application/json')
+                ->set_status_header($status_code, $status_message)
+                ->set_output(json_encode($response));
+            return;
+        } else $message = 'Authentication failed';
+
+        $response = array('error' => $message);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(401, 'Unauthorized')
+            ->set_output(json_encode($response));
     }
 }
