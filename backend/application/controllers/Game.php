@@ -1,6 +1,5 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
-
 class Game extends CI_Controller
 {
 
@@ -9,6 +8,7 @@ class Game extends CI_Controller
         parent::__construct();
         $this->load->model('Game_model');
     }
+
 
     private function patch_game_data($patch_data)
     {
@@ -49,11 +49,7 @@ class Game extends CI_Controller
     {
         $raw_input = file_get_contents('php://input');
         $json_data = json_decode($raw_input, true);
-        $isValidBody = true;
-        //should extract playerid from header
-        //$input_header = $this->input->request_headers();
-        //$stringified = json_encode($input_header);
-        //printf($stringified);
+        $isValidBody = true;       
         if (!isset($json_data['player1']) || empty($json_data['player1'])) {
             $isValidBody = false;
             $message = 'Invalid playerId';
@@ -65,9 +61,7 @@ class Game extends CI_Controller
             $isValidBody = false;
             $message = 'Invalid game state type';
         }
-        $status_code = 400;
-        $status_message = 'Bad Request';
-        $response = array('error' => $message);
+      
 
         if ($isValidBody === true) {
             $game_id = $this->Game_model->insert_game($json_data);
@@ -76,6 +70,10 @@ class Game extends CI_Controller
                 $status_code = 200;
                 $response = array('game_id' => $game_id);
             }
+        }else{
+            $status_code = 400;
+            $status_message = 'Bad Request';
+            $response = array('error' => $message);
         }
         $this->output
             ->set_content_type('application/json')
@@ -83,13 +81,13 @@ class Game extends CI_Controller
             ->set_output(json_encode($response));
     }
 
-    public function fetch($id)
+    public function fetch($any)
     {
         //should extract playerid from header
         //$input_header = $this->input->request_headers();
         //$stringified = json_encode($input_header);
 
-        $data = $this->Game_model->get_game_by_game_id($id);
+        $data = $this->Game_model->get_game_by_game_id($any);
         if ($data) {
             $status_code = 200;
             $status_message = 'OK';

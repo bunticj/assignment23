@@ -35,3 +35,4 @@ socket_server/dist/*
 socket_server/node_modules
 socket_server/**/*.js
 data/*
+backend/application/vendor

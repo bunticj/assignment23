@@ -37,10 +37,10 @@ services:
       - -c
       - |
         composer -vvv update
-        composer -vvv install --working-dir=/var/www/html
+        composer -vvv install --working-dir=/var/www/html/
     volumes:
       - ./src:/var/www/html
-      - ./src/vendor:/var/www/html/vendor
+      - ./backend/vendor:/var/www/html/vendor
   pma:
     image: phpmyadmin/phpmyadmin
     container_name: rps_pma
@@ -71,7 +71,7 @@ services:
     build: ./socket_server/
     container_name: rps_socket_server
     ports: 
-    - "5000:3001"
+    - "3001:3001"
     restart: unless-stopped
 networks:
   default:

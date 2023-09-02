@@ -55,7 +55,7 @@ $route['register']['post'] = 'user/register';
 $route['me']['get'] = 'user/me';
 $route['game']['post'] = 'game/create';
 $route['game'] ['patch'] = 'game/update';
-$route['game/:id']['get'] = 'game/fetch';
+$route['game/(:any)']['get'] = 'game/fetch/$1';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = false;

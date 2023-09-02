@@ -33,12 +33,9 @@ export class SocketServer {
             const response = axiosResponse.data;
             LOGGER.debug(JSON.stringify(response));
             if (!response || axiosResponse.status !== 200 || !response.user_id) return false;
-
-
             socket.playerId = response.user_id;
             socket.email = response.email;
             return true;
-
         }
         catch (error) {
             return false;

@@ -3,7 +3,6 @@ import { jwtToken } from "./JwtToken";
 
 class HttpClient {
     public async sendHttpRequest<T>(url: string, body: T, method: string, authToken?: string): Promise<AxiosResponse> {
-
         if (!authToken) authToken = jwtToken.signJwtToken();
         const headers = {
             "Accept": "application/json",

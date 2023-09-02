@@ -1,13 +1,13 @@
 <?php
-defined('BASEPATH') or exit('No direct script access allowed');
-
 class User extends CI_Controller
 {
-
+    private  $jwt;
     public function __construct()
     {
         parent::__construct();
         $this->load->model('User_model');
+        $this->load->library('Jwt_lib');
+        $this->jwt = new Jwt_lib();
     }
 
     private function validateUserBody($json_data, $isLogin)
@@ -34,11 +34,12 @@ class User extends CI_Controller
         $status_code = 401;
         $status_message = 'Unauthorized';
         $response = array('error' => $message);
-        
+
         if ($message === 'Success') {
             $user = $this->User_model->get_user_by_email($json_data['email']);
             if ($user && password_verify($json_data['password'], $user->password)) {
-                $response = array('message' => $message, 'token' => 'Some generated token which will be able to identify us');
+                $token =  $this->jwt->sign_token($user->user_id, $user->email);
+                $response = array('message' => $message, 'token' => $token);
                 $status_code = 200;
                 $status_message = 'OK';
             }
@@ -53,10 +54,6 @@ class User extends CI_Controller
     {
         $raw_input = file_get_contents('php://input');
         $json_data = json_decode($raw_input, true);
-        //should extract playerid from header
-        //$input_header = $this->input->request_headers();
-        //$stringified = json_encode($input_header);
-        //printf($stringified);
         $message = $this->validateUserBody($json_data, false);
 
         $status_code = 401;
@@ -70,7 +67,8 @@ class User extends CI_Controller
                 $user_id = $this->User_model->insert_user($json_data, $hashed_pass);
                 // todo generate token
                 if ($user_id) {
-                    $response = array('message' => $message, 'token' => 'Some generated token which will be able to identify us');
+                    $token =  $this->jwt->sign_token($user_id, $json_data['email']);
+                    $response = array('message' => $message, 'token' => $token);
                     $status_code = 200;
                     $status_message = 'OK';
                 }
@@ -84,14 +82,15 @@ class User extends CI_Controller
 
     public function me()
     {
-        $input_header = $this->input->request_headers();
-        $authToken = $input_header['Authorization'];
-        // decode token and get id
-        // for test, set id as token
-        $user_id = $authToken;
-        $user = $this->User_model->get_user_by_id($user_id);
+        $request_headers = $this->input->request_headers();
+        $token =  $request_headers['Authorization'];
+        $payload = $this->jwt->handle_authorization($token);
+        $user = 0;
+        if ($payload) {
+            $user = $this->User_model->get_user_by_id($payload->data->user_id);
+        }
         if ($user) {
-            $response = array('user_id' => $user_id, 'email' => $user->email);
+            $response = array('user_id' => $user->user_id, 'email' => $user->email);
             $status_code = 200;
             $status_message = 'OK';
         } else {
