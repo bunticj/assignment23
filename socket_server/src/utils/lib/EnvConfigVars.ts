@@ -8,6 +8,6 @@ export default {
     HTTPS_CERT_PATH: process.env.HTTPS_CERTIFICATE_PATH,
     SECRET_KEY: process.env.SECRET_KEY || "t32ads90_78-fda8?f09dfa89dfadfle",
     CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
-    CODE_IGNITER_URL: (process.env.CODE_IGNITER_URL) || "http://localhost:80",
+    NGINX_IP: (process.env.NGINX_IP) ? "http://" + process.env.NGINX_IP : "http://localhost:80",
     VERBOSE_LOGS: process.env.VERBOSE_LOGS || ""
 }

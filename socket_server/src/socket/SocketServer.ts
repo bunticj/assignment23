@@ -11,7 +11,7 @@ export class SocketServer {
         this.io = io;
         this.setupSockets();
     }
-
+    //validate and initialize socket handlers
     private setupSockets() {
         this.io.use(async (socket: Socket, next) => {
             if (await this.isSocketAuthenticated(socket as AuthSocket)) next();
@@ -24,15 +24,16 @@ export class SocketServer {
         });
     }
 
+    //get jwt and check on php server for user details
     private async isSocketAuthenticated(socket: AuthSocket): Promise<boolean> {
         try {
             if (!socket || !socket.handshake.query.authorization) return false;
             const authToken = socket.handshake.query.authorization as string;
-            const fullUrl = EnvConfigVars.CODE_IGNITER_URL + "/me";
+            const fullUrl = EnvConfigVars.NGINX_IP + "/me";
             const axiosResponse = await httpClient.sendHttpRequest(fullUrl, undefined, "GET", authToken);
             const response = axiosResponse.data;
-            LOGGER.debug(JSON.stringify(response));
             if (!response || axiosResponse.status !== 200 || !response.user_id) return false;
+            LOGGER.debug(JSON.stringify(response));
             socket.playerId = response.user_id;
             socket.email = response.email;
             return true;

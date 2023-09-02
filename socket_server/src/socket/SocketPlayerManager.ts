@@ -1,4 +1,4 @@
-import SocketController from '../controllers/SocketController';
+import SocketController from './SocketController';
 import { SchedulerType } from '../game/enums/SchedulerType';
 import { gameService } from '../game/services/GameService';
 import SchedulerService from '../game/services/SchedulerService';
@@ -13,6 +13,7 @@ class SocketPlayerManager {
         return this.playerSockets[playerId]?.socket.id;
     }
 
+    // init socket controller and handlers, add player to onlinePlayers
     public addNewPlayer(socket: AuthSocket) {
         const playerId = socket.playerId!;
         SchedulerService.cancelScheduler(SchedulerType.DisconnectPlayer, playerId);
@@ -22,6 +23,7 @@ class SocketPlayerManager {
         this.playerSockets[playerId] = socketController;
     }
 
+    // clear player presence data
     public removeOnlinePlayer(playerId: number) {
         gameService.cancelIfPossible(this.playerSockets[playerId].roomId);
         SchedulerService.cancelScheduler(SchedulerType.DisconnectPlayer, playerId);

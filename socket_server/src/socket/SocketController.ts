@@ -1,6 +1,6 @@
-import { socketManager } from '../socket/SocketPlayerManager';
+import { socketManager } from './SocketPlayerManager';
 import { LOGGER } from '../utils/LoggerService';
-import { validateJoinGame, validateSendPick } from '../socket/validator/SocketEventValidation';
+import { validateJoinGame, validateSendPick } from './validator/SocketEventValidation';
 import { Constants } from '../utils/Constants';
 import { gameService } from '../game/services/GameService';
 import SchedulerService from '../game/services/SchedulerService';
@@ -39,7 +39,8 @@ export default class SocketController {
             const playerId = this.socket.playerId!;
             LOGGER.debug(`Socket Disconnect called for player ${playerId}, on socket ${this.socket.id} because ${reason}`);
             if (reason === "transport close" || reason === "ping timeout") {
-                // if the connection unexpectedly closed, await for the reconnect for 60seconds, after that cleanup the player data if the timer is not cancelled
+                // if the connection unexpectedly fails(internet issue, or something, wait for the possible
+                //reconnect for 45 seconds,if it doesn't reconnect then trigger remove player
                 SchedulerService.executeScheduler(SchedulerType.DisconnectPlayer, playerId);
             }
             else if (!this.socket.shouldSkipClearData) socketManager.removeOnlinePlayer(playerId);

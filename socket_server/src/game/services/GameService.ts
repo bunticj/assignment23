@@ -63,7 +63,7 @@ class GameService {
         const roomId = Constants.gameRoomPrefixName + gameData.game_id;
         socketServer.io.to(roomId).emit(Constants.leaveRoomName);
         delete GameService.activeGames[roomId];
-        httpClient.sendHttpRequest(EnvConfigVars.CODE_IGNITER_URL + "/game", gameData, "PATCH")
+        httpClient.sendHttpRequest(EnvConfigVars.NGINX_IP + "/game", gameData, "PATCH")
             .then(resolve => {
                 LOGGER.debug("Saved to database")
             })
@@ -72,6 +72,7 @@ class GameService {
             });
     }
 
+    // if the game is not in status waiting, it's too late for cancellation, user can go, but the game will finish with random moves 
     public cancelIfPossible(roomId: string) {
         const activeGame = GameService.activeGames[roomId];
         if (!activeGame || activeGame.gameState !== GameStateType.GameWaiting) return;

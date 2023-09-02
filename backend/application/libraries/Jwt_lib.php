@@ -1,16 +1,16 @@
 <?php
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class Jwt_lib
-{
+{   // todo -> hide secret somewhere
     private $jwt_secret = "t32ads90_78-fda8?f09dfa89dfadfle";
     private $php_server_issuer = "php-srvr";
     private $socket_server_issuer = "sckt-srvr";
 
     public function __construct()
     {
-        // todo -> hide secret somewhere
     }
 
     private function jwt_encode_data($data)
@@ -42,7 +42,7 @@ class Jwt_lib
     }
 
     public function handle_authorization($token)
-    {   
+    {
         if ($token) {
             $payload = $this->jwt_decode_data($token);
             if ($payload) {

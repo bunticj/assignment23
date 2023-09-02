@@ -10,7 +10,6 @@ import { PlayerType } from "./enums/PlayerType";
 import SchedulerService from "./services/SchedulerService";
 import { SchedulerType } from "./enums/SchedulerType";
 import { PickType } from "./enums/PickType";
-import { messageService } from "./services/MessageService";
 import { LOGGER } from "../utils/LoggerService";
 import { GameData } from "./models/GameData";
 import { httpClient } from "../utils/lib/HttpClient";
@@ -61,7 +60,7 @@ export class GameInstance {
         GameSystem.sendMatchMessage(MessageType.GameStarting, this);
         SchedulerService.executeScheduler(SchedulerType.SetGameInProgress, this.gameId);
         const gameData = new GameData(this.gameId, this.gameState, this.playerInfo[PlayerType.Player1], this.playerInfo[PlayerType.Player2], this.gameTimestamps.match.started);
-        httpClient.sendHttpRequest(EnvConfigVars.CODE_IGNITER_URL + "/game", gameData, "PATCH")
+        httpClient.sendHttpRequest(EnvConfigVars.NGINX_IP + "/game", gameData, "PATCH")
             .then(resolve => {
                 LOGGER.debug("Saved to database")
             })

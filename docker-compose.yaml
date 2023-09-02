@@ -40,7 +40,6 @@ services:
         composer -vvv install --working-dir=/var/www/html/
     volumes:
       - ./src:/var/www/html
-      - ./backend/vendor:/var/www/html/vendor
   pma:
     image: phpmyadmin/phpmyadmin
     container_name: rps_pma
@@ -72,6 +71,14 @@ services:
     container_name: rps_socket_server
     ports: 
     - "3001:3001"
+    environment:
+      - SOCKET_SERVER_PORT=3001
+      - SOCKET_SERVER_HOST=localhost
+      - HTTP_PROTOCOL_TYPE=http
+      - SECRET_KEY=t32ads90_78-fda8?f09dfa89dfadfle
+      - CORS_ORIGIN=*
+      - NGINX_IP=rps_nginx
+      - VERBOSE_LOGS=true
     restart: unless-stopped
 networks:
   default:

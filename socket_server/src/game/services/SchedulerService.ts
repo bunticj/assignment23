@@ -9,6 +9,7 @@ import { SchedulerType } from "../enums/SchedulerType";
 export default class SchedulerService {
     private static schedulers: IDictionary<IDictionary<NodeJS.Timeout>> = {};// { ownerId :   { schedulerType : timeout }}
 
+    // cancel setTimeout
     public static cancelScheduler(schedulerType: SchedulerType, ownerId: string | number) {
         const scheduler = SchedulerService.schedulers[ownerId];
         if (scheduler && scheduler[schedulerType]) {
@@ -17,6 +18,7 @@ export default class SchedulerService {
         }
     }
 
+    // manage set time out execution
     public static async executeScheduler(schedulerType: SchedulerType, ownerId: string | number) {
         this.cancelScheduler(schedulerType, ownerId);
         let schedulerCallback: () => void;
