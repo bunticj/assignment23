@@ -25,11 +25,15 @@ class Game extends CI_Controller
         if (isset($patch_data->game_state) && is_numeric($patch_data->game_state)) {
             $existing_data->game_state = $patch_data->game_state;
         }
-        if (isset($patch_data->started_at)) {
-            $existing_data->started_at = $patch_data->started_at;
+        if (isset($patch_data->started_at) && !empty($patch_data->started_at)) {
+            $timestampInSeconds = $patch_data->started_at / 1000;
+            $datetime = date('Y-m-d H:i:s', $timestampInSeconds);
+            $existing_data->started_at = $datetime;
         }
-        if (isset($patch_data->finished_at)) {
-            $existing_data->finished_at = $patch_data->finished_at;
+        if (isset($patch_data->finished_at) && !empty($patch_data->finished_at)) {
+            $timestampInSeconds = $patch_data->finished_at / 1000;
+            $datetime = date('Y-m-d H:i:s', $timestampInSeconds);
+            $existing_data->finished_at = $datetime;
         }
         if (isset($patch_data->player2) && is_numeric($patch_data->player2)) {
             $existing_data->player2 = $patch_data->player2;
@@ -61,25 +65,21 @@ class Game extends CI_Controller
             $isValidBody = false;
             $message = 'Invalid game state type';
         }
+        $status_code = 400;
+        $status_message = 'Bad Request';
+        $response = array('error' => $message);
 
         if ($isValidBody === true) {
-            $data = $this->Game_model->insert_game($json_data);
-            $status_code = 200;
-            $stringif = json_encode(($data));
-            printf($stringif);
-            $message = "OK";
-            $response = array('message' => 'Login successful', 'token' => 'Some generated token which will be able to identify us');
-        } else {
-            $response = array('error' => $message);
-            $status_code = 400;
+            $game_id = $this->Game_model->insert_game($json_data);
+            if ($game_id) {
+                $status_message = 'OK';
+                $status_code = 200;
+                $response = array('game_id' => $game_id);
+            }
         }
-        $input_header = $this->input->request_headers();
-        $stringified = json_encode($input_header);
-        printf($stringified);
-
         $this->output
             ->set_content_type('application/json')
-            ->set_status_header($status_code, $message)
+            ->set_status_header($status_code, $status_message)
             ->set_output(json_encode($response));
     }
 
@@ -90,10 +90,9 @@ class Game extends CI_Controller
         //$stringified = json_encode($input_header);
 
         $data = $this->Game_model->get_game_by_game_id($id);
-        
         if ($data) {
             $status_code = 200;
-            $message = 'OK';
+            $status_message = 'OK';
             $response = array('data' => $data);
         } else {
             show_404();
@@ -101,7 +100,7 @@ class Game extends CI_Controller
         }
         $this->output
             ->set_content_type('application/json')
-            ->set_status_header($status_code, $message)
+            ->set_status_header($status_code, $status_message)
             ->set_output(json_encode($response));
     }
 
@@ -109,19 +108,19 @@ class Game extends CI_Controller
     {
         $raw_input = file_get_contents('php://input');
         $json_data = json_decode($raw_input, true);
-
-
         $patch_data = $this->patch_game_data($json_data);
+        $status_code = 400;
+        $status_message = 'Bad Request';
+        $response = array('error' => "Cant create game");
         if ($patch_data) {
-            $this->Game_model->update_game( $patch_data->game_id,$patch_data);
-        } else {
-            show_404();
-            return;
+            $this->Game_model->update_game($patch_data->game_id, $patch_data);
+            $status_code = 200;
+            $status_message = 'OK';
+            $response = array('message' => 'Updated successful');
         }
-        $response = array('message' => 'Updated successful');
         $this->output
             ->set_content_type('application/json')
-            ->set_status_header(200, "OK")
+            ->set_status_header($status_code, $status_message)
             ->set_output(json_encode($response));
     }
 }

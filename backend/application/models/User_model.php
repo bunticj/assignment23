@@ -18,7 +18,8 @@ class User_model extends CI_Model
             'password' => $hashedPassword,
             'full_name' => $data['full_name']
         );
-        return  $this->db->insert('user', $data);
+       $isSuccess =  $this->db->insert('user', $data);
+       if($isSuccess) return $this->db->insert_id();
     }
 
     public function get_user_by_email($email)

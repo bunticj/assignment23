@@ -16,7 +16,7 @@ class Game_model extends CI_Model
         $counter = 0;
         do {
             $game_id = random_string('alnum', 9);
-            $gameExist = $this->get_game_by_gameId($game_id);
+            $gameExist = $this->get_game_by_game_id($game_id);
             $counter++;
         } while ($gameExist);
         $game = array(
@@ -25,7 +25,11 @@ class Game_model extends CI_Model
             'game_state' => $data['game_state']
         );
         $isSuccess = $this->db->insert('game', $game);
-        return $isSuccess;
+        if ($isSuccess) {
+            return  $game_id;
+        } else {
+            return "";
+        }
     }
 
     public function get_game_by_game_id($gameId)
@@ -37,6 +41,6 @@ class Game_model extends CI_Model
     public function update_game($gameId, $data)
     {
         $this->db->where('game_id', $gameId);
-       return $this->db->update('game', $data);
+        return $this->db->update('game', $data);
     }
 }
