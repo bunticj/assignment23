@@ -42,7 +42,7 @@ class User extends CI_Controller
                 return;
             }
         }
-        $response = array('error' => $message);
+        $response = array('error' => "Unauthorized");
         $this->output
             ->set_content_type('application/json')
             ->set_status_header(401, "Unauthorized")
@@ -84,17 +84,14 @@ class User extends CI_Controller
 
     public function me()
     {
-        $raw_input = file_get_contents('php://input');
-        $json_data = json_decode($raw_input, true);
-        //$input_header = $this->input->request_headers();
-        //$stringified = json_encode($input_header);
-        //printf($stringified);
-
-        //input_header and get id from auth token payload
-        $user_id = 1;
+        $input_header = $this->input->request_headers();
+        $authToken = $input_header['Authorization'];
+        // decode token and get id
+        // for test, set id as token
+        $user_id= $authToken;
         $user = $this->User_model->get_user_by_id($user_id);
         if ($user) {
-            $response = array('user_id' => $user_id, 'email' => $user['email']);
+            $response = array('user_id' => $user_id, 'email' => $user->email);
             $status_code = 200;
             $status_message = 'OK';
             $this->output

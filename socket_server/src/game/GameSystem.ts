@@ -18,6 +18,8 @@ import { MatchMessageData } from "./models/messages/MatchMessageData";
 import { PreMatchMessageData } from "./models/messages/PreMatchMessageData";
 import { GameData } from "./models/GameData";
 import { getRandomInteger } from "../utils/GetRandomNumber";
+import { httpClient } from "../utils/lib/HttpClient";
+import EnvConfigVars from "../utils/lib/EnvConfigVars";
 
 export class GameSystem {
 
@@ -72,7 +74,7 @@ export class GameSystem {
             gameInstance.gameTimestamps.match.started, gameInstance.gameTimestamps.match.finished, gameInstance.playerInfo[winner]);
         gameService.destroyGame(gameApiData)
     }
-    
+
     private static handleRoundScore(currentRound: RoundData) {
         const playedThisRound = currentRound.playedThisRound;
         if (!playedThisRound[PlayerType.Player1]) playedThisRound[PlayerType.Player1] = getRandomInteger(1, 3);

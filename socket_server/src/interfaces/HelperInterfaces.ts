@@ -2,6 +2,7 @@ import { GameStateType } from "../game/enums/GameStateType";
 import { Socket } from "socket.io";
 export interface AuthSocket extends Socket {
     playerId?: number;
+    email?: string; //in case we need it for something
     shouldSkipClearData?: boolean;
 }
 export interface IDictionary<T> {

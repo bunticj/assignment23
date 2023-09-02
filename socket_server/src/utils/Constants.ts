@@ -1,6 +1,6 @@
 export class Constants {
     // configuration
-    public static readonly GAME_ID_LENGTH = 7;
+    public static readonly GAME_ID_LENGTH = 9;
     public static readonly ROOM_MAX_SIZE = 2;
     public static readonly SERVER_TOKEN_DURATION = 45; // s => 45s;
     public static readonly DISCONNECT_TIMER = 45000;  // ms => 45s;
@@ -14,5 +14,4 @@ export class Constants {
     public static readonly joinGameName = "join_game";
     public static readonly sendPickName = "send_pick";
     public static readonly messageName = "message";
-
 }

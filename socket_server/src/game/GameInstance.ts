@@ -12,6 +12,9 @@ import { SchedulerType } from "./enums/SchedulerType";
 import { PickType } from "./enums/PickType";
 import { messageService } from "./services/MessageService";
 import { LOGGER } from "../utils/LoggerService";
+import { GameData } from "./models/GameData";
+import { httpClient } from "../utils/lib/HttpClient";
+import EnvConfigVars from "../utils/lib/EnvConfigVars";
 export class GameInstance {
     public gameId: string;
     public gameState: GameStateType;
@@ -56,8 +59,15 @@ export class GameInstance {
         this.gameState = GameStateType.GameStarting;
         this.gameTimestamps = new GameTimestamps();
         GameSystem.sendMatchMessage(MessageType.GameStarting, this);
-        // todo update game data via api after php implementation
-        SchedulerService.executeScheduler(SchedulerType.SetGameInProgress, this.gameId)
+        SchedulerService.executeScheduler(SchedulerType.SetGameInProgress, this.gameId);
+        const gameData = new GameData(this.gameId, this.gameState, this.playerInfo[PlayerType.Player1], this.playerInfo[PlayerType.Player2], this.gameTimestamps.match.started);
+        httpClient.sendHttpRequest(EnvConfigVars.CODE_IGNITER_URL + "/game", gameData, "PATCH")
+            .then(resolve => {
+                LOGGER.debug("Saved to database")
+            })
+            .catch(error => {
+                LOGGER.error(error);
+            });
     }
 
     private getPlayerType(playerId: number): PlayerType | undefined {

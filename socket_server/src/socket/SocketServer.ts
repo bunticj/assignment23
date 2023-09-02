@@ -3,6 +3,7 @@ import { LOGGER } from '../utils/LoggerService';
 import { socketManager } from './SocketPlayerManager';
 import EnvConfigVars from '../utils/lib/EnvConfigVars';
 import { AuthSocket } from '../interfaces/HelperInterfaces';
+import { httpClient } from '../utils/lib/HttpClient';
 
 export class SocketServer {
     public io: IoServer;
@@ -24,16 +25,23 @@ export class SocketServer {
     }
 
     private async isSocketAuthenticated(socket: AuthSocket): Promise<boolean> {
-        if (!socket || !socket.handshake.query.authorization) return false;
-        const authToken = socket.handshake.query.authorization as string;
-        const fullUrl = EnvConfigVars.CODE_IGNITER_URL + "/me";
-        // delete this, uncomment down
-        if (authToken === "auth1") socket.playerId = 101;
-        else if (authToken === "auth2") socket.playerId = 202;
-        else return false;
-        //  const response = await sendRequest(fullUrl, undefined, "GET", authToken);
-        //  if (response.status !== 200 || response.data.error) return false
-        //  const playerId = "responseData.playerId";
-        return true;
+        try {
+            if (!socket || !socket.handshake.query.authorization) return false;
+            const authToken = socket.handshake.query.authorization as string;
+            const fullUrl = EnvConfigVars.CODE_IGNITER_URL + "/me";
+            const axiosResponse = await httpClient.sendHttpRequest(fullUrl, undefined, "GET", authToken);
+            const response = axiosResponse.data;
+            LOGGER.debug(JSON.stringify(response));
+            if (!response || axiosResponse.status !== 200 || !response.user_id) return false;
+
+
+            socket.playerId = response.user_id;
+            socket.email = response.email;
+            return true;
+
+        }
+        catch (error) {
+            return false;
+        }
     }
 }

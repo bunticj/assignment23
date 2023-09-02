@@ -2,6 +2,8 @@ import { socketServer } from "../../App";
 import { IDictionary, ValidationGameData } from "../../interfaces/HelperInterfaces";
 import { Constants } from "../../utils/Constants";
 import { LOGGER } from "../../utils/LoggerService";
+import EnvConfigVars from "../../utils/lib/EnvConfigVars";
+import { httpClient } from "../../utils/lib/HttpClient";
 import { GameInstance } from "../GameInstance";
 import { GameStateType } from "../enums/GameStateType";
 import { MessageType } from "../enums/MessageType";
@@ -57,11 +59,17 @@ class GameService {
     }
 
     public destroyGame(gameData: GameData) {
-        LOGGER.debug(`Destroy gameId ${gameData.gameId}`);
-        const roomId = Constants.gameRoomPrefixName + gameData.gameId;
+        LOGGER.debug(`Destroy gameId ${gameData.game_id}`);
+        const roomId = Constants.gameRoomPrefixName + gameData.game_id;
         socketServer.io.to(roomId).emit(Constants.leaveRoomName);
         delete GameService.activeGames[roomId];
-        // todo update game data via api after php implementation
+        httpClient.sendHttpRequest(EnvConfigVars.CODE_IGNITER_URL + "/game", gameData, "PATCH")
+            .then(resolve => {
+                LOGGER.debug("Saved to database")
+            })
+            .catch(error => {
+                LOGGER.error(error);
+            });
     }
 
     public cancelIfPossible(roomId: string) {
@@ -71,7 +79,7 @@ class GameService {
         activeGame.intermission;
         const cancelledGameData = new GameData(activeGame.gameId, GameStateType.GameCancelled, activeGame.playerInfo[PlayerType.Player1], undefined, Date.now(), Date.now());
         LOGGER.debug(`Cancel gameId ${activeGame.gameId}`);
-        this.destroyGame(cancelledGameData)
+        this.destroyGame(cancelledGameData);
     }
 
 }
